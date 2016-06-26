@@ -160,6 +160,7 @@ function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
 			o.t = "str"; break;
 	}
 	if(cell.t != oldt) { cell.t = oldt; cell.v = oldv; }
+	if(cell.f) { v = writetag('f', escapexml(cell.f)) + v; }
 	return writextag('c', v, o);
 }
 
