@@ -268,12 +268,24 @@ function write_ws_xml_data(ws, opts, idx, wb) {
 	for(R = range.s.r; R <= range.e.r; ++R) {
 		r = [];
 		rr = encode_row(R);
+		var ht = 15;
 		for(C = range.s.c; C <= range.e.c; ++C) {
 			ref = cols[C] + rr;
-			if(ws[ref] === undefined) continue;
-			if((cell = write_ws_xml_cell(ws[ref], ref, ws, opts, idx, wb)) != null) r.push(cell);
+
+			var cc = ws[ref];
+			if(cc === undefined) continue;
+
+			if (cc.ht && cc.ht > ht) {
+				ht = cc.ht;
+			}
+			if((cell = write_ws_xml_cell(cc, ref, ws, opts, idx, wb)) != null) r.push(cell);
 		}
-		if(r.length > 0) o[o.length] = (writextag('row', r.join(""), {r:rr}));
+		var p = {r:rr};
+		if (ht > 15) {
+			p.ht = ht;
+			p.customHeight = "true";
+		}
+		if(r.length > 0) o[o.length] = (writextag('row', r.join(""), p));
 	}
 	return o.join("");
 }
