@@ -10,11 +10,26 @@ function get_sst_id(sst, str) {
 
 function get_cell_style(styles, cell, opts) {
 	var z = opts.revssf[cell.z != null ? cell.z : "General"];
-	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z) return i;
+	var f = 0;
+	if (cell.s) {
+		var ss = JSON.stringify(cell.s);
+		if (!opts.fills) {
+			opts.fills = [ss];
+			f = 1;
+		}
+		else {
+			f = opts.fills.indexOf(ss) + 1;
+			if (f === 0) {
+				opts.fills.push(ss);
+				f = opts.fills.length;
+			}
+		}
+	}
+	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z && styles[i].fillId === f) return i;
 	styles[len] = {
 		numFmtId:z,
 		fontId:0,
-		fillId:0,
+		fillId:f,
 		borderId:0,
 		xfId:0,
 		applyNumberFormat:1

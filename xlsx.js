@@ -4679,6 +4679,24 @@ function parse_fills(t, opts) {
 	});
 }
 
+function write_fills(fills) {
+	var o = [
+		'<fills count="' + (fills ? 1 + fills.length : 1) + '">',
+		'<fill>' + writextag('patternFill', null, {patternType: "none"}) + '</fill>'
+	];
+	if (fills) {
+		for (var i = 0; i < fills.length; i++) {
+			var fill = JSON.parse(fills[i]);
+			o.push('<fill><patternFill patternType="'+fill.patternType+'">' +
+				writextag("fgColor", null, fill.fgColor) +
+				writextag("bgColor", null, fill.bgColor) +
+				'</patternFill></fill>');
+		}
+	}
+	o[o.length] = ("</fills>");
+	return o.join("");
+}
+
 /* 18.8.31 numFmts CT_NumFmts */
 function parse_numFmts(t, opts) {
 	styles.NumberFmt = [];
@@ -7216,11 +7234,26 @@ function get_sst_id(sst, str) {
 
 function get_cell_style(styles, cell, opts) {
 	var z = opts.revssf[cell.z != null ? cell.z : "General"];
-	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z) return i;
+	var f = 0;
+	if (cell.s) {
+		var ss = JSON.stringify(cell.s);
+		if (!opts.fills) {
+			opts.fills = [ss];
+			f = 1;
+		}
+		else {
+			f = opts.fills.indexOf(ss) + 1;
+			if (f === 0) {
+				opts.fills.push(ss);
+				f = opts.fills.length;
+			}
+		}
+	}
+	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z && styles[i].fillId === f) return i;
 	styles[len] = {
 		numFmtId:z,
 		fontId:0,
-		fillId:0,
+		fillId:f,
 		borderId:0,
 		xfId:0,
 		applyNumberFormat:1

@@ -4679,6 +4679,24 @@ function parse_fills(t, opts) {
 	});
 }
 
+function write_fills(fills) {
+	var o = [
+		'<fills count="' + (fills ? 1 + fills.length : 1) + '">',
+		'<fill>' + writextag('patternFill', null, {patternType: "none"}) + '</fill>'
+	];
+	if (fills) {
+		for (var i = 0; i < fills.length; i++) {
+			var fill = JSON.parse(fills[i]);
+			o.push('<fill><patternFill patternType="'+fill.patternType+'">' +
+				writextag("fgColor", null, fill.fgColor) +
+				writextag("bgColor", null, fill.bgColor) +
+				'</patternFill></fill>');
+		}
+	}
+	o[o.length] = ("</fills>");
+	return o.join("");
+}
+
 /* 18.8.31 numFmts CT_NumFmts */
 function parse_numFmts(t, opts) {
 	styles.NumberFmt = [];
@@ -4792,7 +4810,7 @@ function write_sty_xml(wb, opts) {
 	var o = [XML_HEADER, STYLES_XML_ROOT], w;
 	if((w = write_numFmts(wb.SSF)) != null) o[o.length] = w;
 	o[o.length] = ('<fonts count="1"><font><sz val="12"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font></fonts>');
-	o[o.length] = ('<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>');
+	if((w = write_fills(opts.fills))) o[o.length] = (w);
 	o[o.length] = ('<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>');
 	o[o.length] = ('<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>');
 	if((w = write_cellXfs(opts.cellXfs))) o[o.length] = (w);
@@ -7216,11 +7234,26 @@ function get_sst_id(sst, str) {
 
 function get_cell_style(styles, cell, opts) {
 	var z = opts.revssf[cell.z != null ? cell.z : "General"];
-	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z) return i;
+	var f = 0;
+	if (cell.s) {
+		var ss = JSON.stringify(cell.s);
+		if (!opts.fills) {
+			opts.fills = [ss];
+			f = 1;
+		}
+		else {
+			f = opts.fills.indexOf(ss) + 1;
+			if (f === 0) {
+				opts.fills.push(ss);
+				f = opts.fills.length;
+			}
+		}
+	}
+	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z && styles[i].fillId === f) return i;
 	styles[len] = {
 		numFmtId:z,
 		fontId:0,
-		fillId:0,
+		fillId:f,
 		borderId:0,
 		xfId:0,
 		applyNumberFormat:1
