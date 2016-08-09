@@ -11,26 +11,48 @@ function get_sst_id(sst, str) {
 function get_cell_style(styles, cell, opts) {
 	var z = opts.revssf[cell.z != null ? cell.z : "General"];
 	var f = 0;
+	var b = 0;
 	if (cell.s) {
-		var ss = JSON.stringify(cell.s);
-		if (!opts.fills) {
-			opts.fills = [ss];
-			f = 1;
+		if (cell.s.fill) {
+			var fs = JSON.stringify(cell.s.fill);
+			if (!opts.fills) {
+				opts.fills = [fs];
+				f = 1;
+			}
+			else {
+				f = opts.fills.indexOf(fs) + 1;
+				if (f === 0) {
+					opts.fills.push(fs);
+					f = opts.fills.length;
+				}
+			}
 		}
-		else {
-			f = opts.fills.indexOf(ss) + 1;
-			if (f === 0) {
-				opts.fills.push(ss);
-				f = opts.fills.length;
+		if (cell.s.border) {
+			var bs = JSON.stringify(cell.s.border);
+			if (!opts.borders) {
+				opts.borders = [bs];
+				b = 1;
+			}
+			else {
+				b = opts.borders.indexOf(bs) + 1;
+				if (b === 0) {
+					opts.borders.push(bs);
+					b = opts.borders.length;
+				}
 			}
 		}
 	}
-	for(var i = 0, len = styles.length; i != len; ++i) if(styles[i].numFmtId === z && styles[i].fillId === f) return i;
+	for(var i = 0, len = styles.length; i != len; ++i) {
+		if (styles[i].numFmtId === z &&
+			styles[i].fillId === f &&
+			styles[i].borderId === b)
+			return i;
+	}
 	styles[len] = {
 		numFmtId:z,
 		fontId:0,
 		fillId:f,
-		borderId:0,
+		borderId:b,
 		xfId:0,
 		applyNumberFormat:1
 	};

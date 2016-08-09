@@ -4697,6 +4697,27 @@ function write_fills(fills) {
 	return o.join("");
 }
 
+function write_borders(borders) {
+	var o = [
+		'<borders count="' + (borders ? 1 + borders.length : 1) + '">',
+		'<border diagonalUp="false" diagonalDown="false"><left/><right/><top/><bottom/><diagonal/></border>'
+	];
+	if (borders) {
+		for (var i = 0; i < borders.length; i++) {
+			var border = JSON.parse(borders[i]);
+			o.push('<border diagonalUp="' + border.diagonalUp + '" diagonalDown="' + border.diagonalDown + '">' +
+				writextag("left", border.left ? writextag("color", null, border.left.color) : null, border.left ? {style: border.left.style} : null) +
+				writextag("right", border.right ? writextag("color", null, border.right.color) : null, border.right ? {style: border.right.style} : null) +
+				writextag("top", border.top ? writextag("color", null, border.top.color) : null, border.top ? {style: border.top.style} : null) +
+				writextag("bottom", border.bottom ? writextag("color", null, border.bottom.color) : null, border.bottom ? {style: border.bottom.style} : null) +
+				writextag("diagonal", border.diagonal ? writextag("color", null, border.diagonal.color) : null, border.diagonal ? {style: border.diagonal.style} : null) +
+				'</border>');
+		}
+	}
+	o[o.length] = ("</borders>");
+	return o.join("");
+}
+
 /* 18.8.31 numFmts CT_NumFmts */
 function parse_numFmts(t, opts) {
 	styles.NumberFmt = [];
@@ -4810,8 +4831,8 @@ function write_sty_xml(wb, opts) {
 	var o = [XML_HEADER, STYLES_XML_ROOT], w;
 	if((w = write_numFmts(wb.SSF)) != null) o[o.length] = w;
 	o[o.length] = ('<fonts count="1"><font><sz val="12"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font></fonts>');
-	o[o.length] = ('<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>');
-	o[o.length] = ('<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>');
+	if((w = write_fills(opts.fills))) o[o.length] = (w);
+	if((w = write_borders(opts.borders))) o[o.length] = (w);
 	o[o.length] = ('<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>');
 	if((w = write_cellXfs(opts.cellXfs))) o[o.length] = (w);
 	o[o.length] = ('<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>');
