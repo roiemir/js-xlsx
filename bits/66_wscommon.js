@@ -12,6 +12,7 @@ function get_cell_style(styles, cell, opts) {
 	var z = opts.revssf[cell.z != null ? cell.z : "General"];
 	var f = 0;
 	var b = 0;
+	var fn = 0;
 	if (cell.s) {
 		if (cell.s.fill) {
 			var fs = JSON.stringify(cell.s.fill);
@@ -41,16 +42,20 @@ function get_cell_style(styles, cell, opts) {
 				}
 			}
 		}
+		if (cell.s.font && cell.s.font.bold) {
+			fn = 1;
+		}
 	}
 	for(var i = 0, len = styles.length; i != len; ++i) {
 		if (styles[i].numFmtId === z &&
 			styles[i].fillId === f &&
-			styles[i].borderId === b)
+			styles[i].borderId === b &&
+			styles[i].fontId === fn)
 			return i;
 	}
 	styles[len] = {
 		numFmtId:z,
-		fontId:0,
+		fontId:fn,
 		fillId:f,
 		borderId:b,
 		xfId:0,
