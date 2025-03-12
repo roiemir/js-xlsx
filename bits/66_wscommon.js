@@ -42,8 +42,19 @@ function get_cell_style(styles, cell, opts) {
 				}
 			}
 		}
-		if (cell.s.font && cell.s.font.bold) {
-			fn = 1;
+		if (cell.s.font) {
+			var fs = JSON.stringify(cell.s.font);
+			if (!opts.fonts) {
+				opts.fonts = [fs];
+				fn = 1;
+			}
+			else {
+				fn = opts.fonts.indexOf(fs) + 1;
+				if (fn === 0) {
+					opts.fonts.push(fs);
+					fn = opts.fonts.length;
+				}
+			}
 		}
 	}
 	for(var i = 0, len = styles.length; i != len; ++i) {

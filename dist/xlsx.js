@@ -4697,6 +4697,24 @@ function write_fills(fills) {
 	return o.join("");
 }
 
+function write_fonts(fonts) {
+	var o = [
+		'<fonts count="' + (fonts ? 1 + fonts.length : 1) + '">',
+		'<font><sz val="12"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="1"/></font>'
+	];
+	if (fonts) {
+		for (var i = 0; i < fonts.length; i++) {
+			var font = JSON.parse(fonts[i]);
+			o.push('<font><sz val="12"/><name val="Calibri"/><family val="2"/><charset val="1"/>' +
+				(font.color ? writextag("color", null, {rgb: font.color}) : "") +
+				(font.bold ? writextag("b", null, {val: true}) : "") +
+				'</font>');
+		}
+	}
+	o[o.length] = ("</fonts>");
+	return o.join("");
+}
+
 function write_borders(borders) {
 	var o = [
 		'<borders count="' + (borders ? 1 + borders.length : 1) + '">',
@@ -4830,7 +4848,7 @@ RELS.STY = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/
 function write_sty_xml(wb, opts) {
 	var o = [XML_HEADER, STYLES_XML_ROOT], w;
 	if((w = write_numFmts(wb.SSF)) != null) o[o.length] = w;
-	o[o.length] = ('<fonts count="2"><font><sz val="12"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font><font><b val="true"/><sz val="12"/><color theme="1"/><name val="Calibri"/><family val="2"/><scheme val="minor"/></font></fonts>');
+	if((w = write_fonts(opts.fonts))) o[o.length] = (w);
 	if((w = write_fills(opts.fills))) o[o.length] = (w);
 	if((w = write_borders(opts.borders))) o[o.length] = (w);
 	o[o.length] = ('<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>');
@@ -7284,6 +7302,20 @@ function get_cell_style(styles, cell, opts) {
 				if (b === 0) {
 					opts.borders.push(bs);
 					b = opts.borders.length;
+				}
+			}
+		}
+		if (cell.s.font) {
+			var fs = JSON.stringify(cell.s.font);
+			if (!opts.fonts) {
+				opts.fonts = [fs];
+				fn = 1;
+			}
+			else {
+				fn = opts.fonts.indexOf(fs) + 1;
+				if (fn === 0) {
+					opts.fonts.push(fs);
+					fn = opts.fonts.length;
 				}
 			}
 		}
